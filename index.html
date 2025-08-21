@@ -1,843 +1,1049 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Matheus Assis - Aula de Violão</title>
-    
-    <!-- Tailwind CSS para um design moderno e responsivo -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Biblioteca de ícones Lucide -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Matheus Assis - Aula de Violão</title>
 
-    <!-- Bibliotecas de Áudio: Tone.js (Metrônomo) e Pitchy (Afinador) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/pitchy@4.1.0/dist/pitchy.min.js"></script>
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Configuração do PWA (Progressive Web App) -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#1f2937">
-    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+  <!-- Lucide icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
 
-    <style>
-        /* Estilo para a agulha do afinador */
-        #tuner-needle {
-            transition: transform 0.2s ease-out;
-        }
-        /* Estilo para a barra de rolagem do braço do violão */
-        .fretboard-container::-webkit-scrollbar {
-            width: 8px;
-        }
-        .fretboard-container::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-        .fretboard-container::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 10px;
-        }
-        .fretboard-container::-webkit-scrollbar-thumb:hover {
-            background: #555;
-        }
-    </style>
-</head>
-<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans antialiased">
+  <!-- Tone.js (metrônomo) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
 
-    <!-- Menu Lateral Retrátil -->
-    <nav id="sidebar" class="fixed top-0 left-0 h-full w-64 bg-white dark:bg-gray-800 shadow-lg z-50 transform -translate-x-full transition-transform duration-300 ease-in-out">
-        <div class="p-4">
-            <h2 class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">Menu</h2>
-            <ul class="mt-8 space-y-2">
-                <li><a href="#" class="nav-link flex items-center p-2 text-base font-normal rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700" data-page="home"><i data-lucide="home" class="w-5 h-5 mr-3"></i>Página Inicial</a></li>
-                <li><a href="#" class="nav-link flex items-center p-2 text-base font-normal rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700" data-page="tuner"><i data-lucide="tuning-fork" class="w-5 h-5 mr-3"></i>Afinador</a></li>
-                <li><a href="#" class="nav-link flex items-center p-2 text-base font-normal rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700" data-page="chord-identifier"><i data-lucide="guitar" class="w-5 h-5 mr-3"></i>Identificador de Acordes</a></li>
-                <li><a href="#" class="nav-link flex items-center p-2 text-base font-normal rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700" data-page="note-identifier"><i data-lucide="music-2" class="w-5 h-5 mr-3"></i>Identificador de Notas</a></li>
-                <li><a href="#" class="nav-link flex items-center p-2 text-base font-normal rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700" data-page="metronome"><i data-lucide="gauge-circle" class="w-5 h-5 mr-3"></i>Metrônomo</a></li>
-                <li><a href="#" class="nav-link flex items-center p-2 text-base font-normal rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700" data-page="tab-editor"><i data-lucide="file-text" class="w-5 h-5 mr-3"></i>Editor de Tablaturas</a></li>
-            </ul>
-        </div>
-    </nav>
+  <!-- Pitchy (afinador) -->
+  <script src="https://cdn.jsdelivr.net/npm/pitchy@4.1.0/dist/pitchy.umd.min.js"></script>
 
-    <!-- Overlay para fechar o menu -->
-    <div id="sidebar-overlay" class="fixed inset-0 bg-black opacity-50 z-40 hidden"></div>
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#111827" />
+  <link rel="apple-touch-icon" href="icons/icon-192x192.png" />
 
-    <!-- Conteúdo Principal -->
-    <div id="main-content" class="min-h-screen transition-all duration-300 ease-in-out">
-        <header class="bg-white dark:bg-gray-800 shadow-md p-4 flex items-center justify-between sticky top-0 z-30">
-            <button id="menu-button" class="p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                <i data-lucide="menu" class="w-6 h-6"></i>
-            </button>
-            <h1 class="text-xl md:text-2xl font-bold text-center text-indigo-600 dark:text-indigo-400">Matheus Assis - Aula de Violão</h1>
-            <div class="w-8"></div> <!-- Espaçador -->
-        </header>
-
-        <main class="p-4 md:p-8">
-            <!-- Página Inicial -->
-            <div id="home-page" class="page text-center">
-                <h2 class="text-3xl font-bold mb-4">Bem-vindo!</h2>
-                <p class="text-lg mb-8 max-w-2xl mx-auto">Suas ferramentas musicais essenciais em um só lugar. Navegue pelo menu para começar.</p>
-                <div class="flex justify-center">
-                    <div class="nav-link cursor-pointer bg-indigo-600 text-white p-6 rounded-full shadow-lg hover:bg-indigo-700 transition-colors transform hover:scale-105" data-page="tuner">
-                        <i data-lucide="tuning-fork" class="w-16 h-16"></i>
-                    </div>
-                </div>
-                <p class="mt-4 text-lg font-semibold">Ir para o Afinador</p>
-            </div>
-
-            <!-- Página do Afinador -->
-            <div id="tuner-page" class="page hidden">
-                <div class="max-w-md mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
-                    <h2 class="text-2xl font-bold text-center mb-4">Afinador Cromático</h2>
-                    <div id="tuner-status" class="text-center text-lg mb-4 h-8">Clique em "Iniciar" para usar o microfone</div>
-                    <div class="relative h-24 flex items-center justify-center mb-4">
-                        <div class="w-full h-1 bg-gray-300 dark:bg-gray-600 rounded-full"></div>
-                        <div id="tuner-needle" class="absolute w-1 h-24 bg-indigo-500 rounded-full" style="transform: rotate(0deg);"></div>
-                        <div class="absolute w-3 h-3 bg-white dark:bg-gray-800 border-2 border-indigo-500 rounded-full"></div>
-                    </div>
-                    <div class="flex justify-between text-sm text-gray-500 dark:text-gray-400 px-2">
-                        <span>-50</span>
-                        <span>Em Tom</span>
-                        <span>+50</span>
-                    </div>
-                    <div class="text-center mt-6">
-                        <div id="note-display" class="text-8xl font-bold">-</div>
-                        <div id="frequency-display" class="text-xl text-gray-500 dark:text-gray-400">0 Hz</div>
-                    </div>
-                    <div class="mt-6 text-center">
-                        <button id="start-tuner" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">Iniciar Afinador</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Página do Identificador de Acordes -->
-            <div id="chord-identifier-page" class="page hidden">
-                 <div class="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
-                    <h2 class="text-2xl font-bold text-center mb-4">Identificador de Acordes</h2>
-                    <div class="flex flex-col md:flex-row gap-6">
-                        <div class="fretboard-container relative w-full md:w-auto overflow-y-auto h-96 border dark:border-gray-600 rounded-lg">
-                             <canvas id="chord-fretboard-canvas" class="cursor-pointer"></canvas>
-                        </div>
-                        <div class="flex-grow">
-                            <h3 class="text-xl font-semibold">Acorde Identificado:</h3>
-                            <div id="chord-result" class="text-4xl font-bold my-2 text-indigo-500">--</div>
-                            <h3 class="text-xl font-semibold mt-4">Notas do Acorde:</h3>
-                            <div id="chord-notes-result" class="text-lg my-2 text-gray-600 dark:text-gray-300">--</div>
-                            <div class="mt-6 space-x-2">
-                                <button id="download-chord-png" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">Baixar PNG</button>
-                                <button id="clear-chord" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">Limpar</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Página do Identificador de Notas -->
-            <div id="note-identifier-page" class="page hidden">
-                <div class="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 text-center">
-                    <h2 class="text-2xl font-bold text-center mb-4">Identificador de Notas</h2>
-                    <canvas id="note-fretboard-canvas" class="mx-auto cursor-pointer border dark:border-gray-600 rounded-lg"></canvas>
-                    <div class="mt-4">
-                        <button id="toggle-all-notes" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">Mostrar Todas as Notas</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Página do Metrônomo -->
-            <div id="metronome-page" class="page hidden">
-                <div class="max-w-sm mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 text-center">
-                    <h2 class="text-2xl font-bold mb-4">Metrônomo</h2>
-                    <div id="metro-bpm-display" class="text-7xl font-bold my-4">120</div>
-                    <p class="text-sm -mt-4 mb-6">BPM</p>
-                    <input id="metro-slider" type="range" min="40" max="240" value="120" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
-                    <div class="mt-6">
-                        <label for="metro-signature" class="block mb-2 text-sm font-medium">Compasso:</label>
-                        <select id="metro-signature" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">
-                            <option value="4">4/4</option>
-                            <option value="3">3/4</option>
-                            <option value="2">2/4</option>
-                            <option value="1">Sem acento</option>
-                        </select>
-                    </div>
-                    <div class="mt-4">
-                        <label for="metro-sound" class="block mb-2 text-sm font-medium">Som:</label>
-                        <select id="metro-sound" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">
-                            <option value="classic">Clássico</option>
-                            <option value="drop">Gota</option>
-                        </select>
-                    </div>
-                    <div class="mt-8">
-                        <button id="metro-start-stop" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg transition-colors text-lg">Iniciar</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Página do Editor de Tablaturas -->
-            <div id="tab-editor-page" class="page hidden">
-                <div class="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
-                    <h2 class="text-2xl font-bold text-center mb-4">Editor de Tablaturas</h2>
-                    <textarea id="tab-textarea" class="w-full h-96 p-4 font-mono text-sm bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="Escreva sua tablatura aqui..."></textarea>
-                    <div class="mt-4 space-x-2 text-center">
-                        <button id="download-tab-txt" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">Baixar .txt</button>
-                        <button id="download-tab-png" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">Baixar .png</button>
-                        <button id="clear-tab" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">Limpar</button>
-                    </div>
-                </div>
-            </div>
-
-        </main>
-    </div>
-
-    <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        // Inicializa os ícones
-        lucide.createIcons();
-
-        // --- LÓGICA GERAL DE NAVEGAÇÃO ---
-        const menuButton = document.getElementById('menu-button');
-        const sidebar = document.getElementById('sidebar');
-        const sidebarOverlay = document.getElementById('sidebar-overlay');
-        const mainContent = document.getElementById('main-content');
-        const navLinks = document.querySelectorAll('.nav-link');
-        const pages = document.querySelectorAll('.page');
-
-        function openSidebar() {
-            sidebar.classList.remove('-translate-x-full');
-            sidebarOverlay.classList.remove('hidden');
-        }
-
-        function closeSidebar() {
-            sidebar.classList.add('-translate-x-full');
-            sidebarOverlay.classList.add('hidden');
-        }
-
-        menuButton.addEventListener('click', openSidebar);
-        sidebarOverlay.addEventListener('click', closeSidebar);
-
-        navLinks.forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                const pageId = link.dataset.page + '-page';
-                
-                pages.forEach(page => {
-                    page.classList.add('hidden');
-                });
-
-                const targetPage = document.getElementById(pageId);
-                if (targetPage) {
-                    targetPage.classList.remove('hidden');
-                }
-                
-                closeSidebar();
-            });
-        });
-
-        // --- LÓGICA DO AFINADOR ---
-        const startTunerBtn = document.getElementById('start-tuner');
-        const tunerStatus = document.getElementById('tuner-status');
-        const noteDisplay = document.getElementById('note-display');
-        const frequencyDisplay = document.getElementById('frequency-display');
-        const tunerNeedle = document.getElementById('tuner-needle');
-        let audioContext, analyser, pitch;
-        const standardTuning = {
-            'E4': 329.63, 'B3': 246.94, 'G3': 196.00, 
-            'D3': 146.83, 'A2': 110.00, 'E2': 82.41
-        };
-        const notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
-
-        function getNoteFromPitch(frequency) {
-            const noteNum = 12 * (Math.log(frequency / 440) / Math.log(2));
-            return Math.round(noteNum) + 69;
-        }
-
-        function getNoteName(noteNum) {
-            return notes[noteNum % 12];
-        }
-        
-        function getCents(frequency, targetFrequency) {
-            return 1200 * Math.log2(frequency / targetFrequency);
-        }
-
-        async function setupTuner() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                analyser = audioContext.createAnalyser();
-                const source = audioContext.createMediaStreamSource(stream);
-                source.connect(analyser);
-                pitch = new Pitchy.PitchDetector({
-                    sampleRate: audioContext.sampleRate,
-                    analyser: analyser
-                });
-                tunerStatus.textContent = 'Afinador pronto!';
-                startTunerBtn.textContent = 'Parar Afinador';
-                startTunerBtn.classList.replace('bg-green-500', 'bg-red-500');
-                startTunerBtn.classList.replace('hover:bg-green-600', 'hover:bg-red-600');
-                updateTuner();
-            } catch (err) {
-                tunerStatus.textContent = 'Erro ao acessar o microfone.';
-                console.error(err);
-            }
-        }
-
-        function stopTuner() {
-            if (audioContext) {
-                audioContext.close();
-                audioContext = null;
-                tunerStatus.textContent = 'Clique em "Iniciar" para usar o microfone';
-                startTunerBtn.textContent = 'Iniciar Afinador';
-                startTunerBtn.classList.replace('bg-red-500', 'bg-green-500');
-                startTunerBtn.classList.replace('hover:bg-red-600', 'hover:bg-green-600');
-                noteDisplay.textContent = '-';
-                frequencyDisplay.textContent = '0 Hz';
-                tunerNeedle.style.transform = `rotate(0deg)`;
-            }
-        }
-
-        function updateTuner() {
-            if (!audioContext) return;
-            const [detectedPitch, clarity] = pitch.findPitch();
-            if (clarity > 0.95 && detectedPitch > 50) { // Limiar de clareza e frequência mínima
-                const noteNum = getNoteFromPitch(detectedPitch);
-                const noteName = getNoteName(noteNum);
-                
-                let closestNote = '';
-                let minDiff = Infinity;
-
-                for (const note in standardTuning) {
-                    const diff = Math.abs(detectedPitch - standardTuning[note]);
-                    if (diff < minDiff) {
-                        minDiff = diff;
-                        closestNote = note;
-                    }
-                }
-
-                const cents = getCents(detectedPitch, standardTuning[closestNote]);
-                
-                noteDisplay.textContent = noteName;
-                frequencyDisplay.textContent = `${detectedPitch.toFixed(2)} Hz`;
-
-                // A agulha vai de -90 (flat) a +90 (sharp)
-                const rotation = Math.max(-90, Math.min(90, cents * 1.8));
-                tunerNeedle.style.transform = `rotate(${rotation}deg)`;
-
-                if (Math.abs(cents) < 5) {
-                    tunerNeedle.classList.replace('bg-indigo-500', 'bg-green-500');
-                } else {
-                    tunerNeedle.classList.replace('bg-green-500', 'bg-indigo-500');
-                }
-
-            }
-            requestAnimationFrame(updateTuner);
-        }
-
-        startTunerBtn.addEventListener('click', () => {
-            if (audioContext) {
-                stopTuner();
-            } else {
-                setupTuner();
-            }
-        });
-
-        // --- LÓGICA DO IDENTIFICADOR DE ACORDES ---
-        const chordCanvas = document.getElementById('chord-fretboard-canvas');
-        const chordCtx = chordCanvas.getContext('2d');
-        const chordResultEl = document.getElementById('chord-result');
-        const chordNotesResultEl = document.getElementById('chord-notes-result');
-        const downloadChordPngBtn = document.getElementById('download-chord-png');
-        const clearChordBtn = document.getElementById('clear-chord');
-        
-        const FRET_HEIGHT = 60;
-        const STRING_WIDTH = 40;
-        const NUM_STRINGS = 6;
-        const NUM_FRETS_VISIBLE = 5;
-        const TOTAL_FRETS = 22;
-        
-        let fingering = [-1, -1, -1, -1, -1, -1]; // -1: não tocada, 0: solta, 1+: casa
-        let firstVisibleFret = 0;
-
-        const noteNames = ["E", "F", "F#", "G", "G#", "A", "A#", "B", "C", "C#", "D", "D#"];
-        const tuning = [4, 9, 2, 7, 11, 4]; // EADGBe em índices de noteNames
-        const noteNamesWithAccents = { "E": "Mi", "F": "Fá", "F#": "Fá#", "G": "Sol", "G#": "Sol#", "A": "Lá", "A#": "Lá#", "B": "Si", "C": "Dó", "C#": "Dó#", "D": "Ré", "D#": "Ré#" };
-        
-        function drawChordFretboard() {
-            const canvasWidth = STRING_WIDTH * (NUM_STRINGS + 1);
-            const canvasHeight = FRET_HEIGHT * (TOTAL_FRETS + 1);
-            chordCanvas.width = canvasWidth;
-            chordCanvas.height = canvasHeight;
-            
-            chordCtx.clearRect(0, 0, canvasWidth, canvasHeight);
-            chordCtx.fillStyle = 'white';
-            chordCtx.fillRect(0, 0, canvasWidth, canvasHeight);
-
-            // Desenha cordas
-            for (let i = 0; i < NUM_STRINGS; i++) {
-                const x = STRING_WIDTH * (i + 1);
-                chordCtx.beginPath();
-                chordCtx.moveTo(x, 0);
-                chordCtx.lineTo(x, canvasHeight);
-                chordCtx.strokeStyle = '#aaa';
-                chordCtx.stroke();
-            }
-
-            // Desenha trastes
-            for (let i = 0; i <= TOTAL_FRETS; i++) {
-                const y = FRET_HEIGHT * i + FRET_HEIGHT / 2;
-                chordCtx.beginPath();
-                chordCtx.moveTo(STRING_WIDTH / 2, y);
-                chordCtx.lineTo(canvasWidth - STRING_WIDTH / 2, y);
-                chordCtx.strokeStyle = '#000';
-                chordCtx.lineWidth = (i === 0) ? 5 : 2;
-                chordCtx.stroke();
-                
-                // Números dos trastes
-                if (i > 0) {
-                    chordCtx.fillStyle = '#000';
-                    chordCtx.font = '14px sans-serif';
-                    chordCtx.textAlign = 'center';
-                    chordCtx.fillText(i, STRING_WIDTH / 4, y + 5);
-                }
-            }
-            
-            // Desenha marcações
-            [3, 5, 7, 9, 12, 15, 17, 19, 21].forEach(fret => {
-                const y = FRET_HEIGHT * fret;
-                const x = canvasWidth / 2;
-                chordCtx.beginPath();
-                chordCtx.arc(x, y, 5, 0, 2 * Math.PI);
-                chordCtx.fillStyle = '#ccc';
-                chordCtx.fill();
-                if (fret === 12 || fret === 24) { // Dupla marcação
-                    chordCtx.beginPath();
-                    chordCtx.arc(x - STRING_WIDTH, y, 5, 0, 2 * Math.PI);
-                    chordCtx.fill();
-                    chordCtx.beginPath();
-                    chordCtx.arc(x + STRING_WIDTH, y, 5, 0, 2 * Math.PI);
-                    chordCtx.fill();
-                }
-            });
-
-            // Desenha os dedos
-            fingering.forEach((fret, string) => {
-                if (fret > -1) {
-                    const x = STRING_WIDTH * (string + 1);
-                    const y = (fret === 0) ? FRET_HEIGHT / 4 : FRET_HEIGHT * fret;
-                    
-                    chordCtx.beginPath();
-                    chordCtx.arc(x, y, 12, 0, 2 * Math.PI);
-                    chordCtx.fillStyle = 'black';
-                    chordCtx.fill();
-                } else if (fret === -1) {
-                     const x = STRING_WIDTH * (string + 1);
-                     const y = FRET_HEIGHT / 4;
-                     chordCtx.font = 'bold 20px sans-serif';
-                     chordCtx.fillStyle = 'red';
-                     chordCtx.fillText('X', x, y + 8);
-                }
-            });
-        }
-        
-        chordCanvas.parentElement.addEventListener('scroll', (e) => {
-            const scrollTop = e.target.scrollTop;
-            firstVisibleFret = Math.floor(scrollTop / FRET_HEIGHT);
-        });
-        
-        function getNoteOnFret(string, fret) {
-            if (fret === -1) return null;
-            const openNoteIndex = tuning[string];
-            const noteIndex = (openNoteIndex + fret) % 12;
-            return noteNames[noteIndex];
-        }
-
-        function identifyChord() {
-            const notesInChord = [];
-            const noteIndices = new Set();
-
-            fingering.forEach((fret, string) => {
-                if (fret > -1) {
-                    const note = getNoteOnFret(string, fret);
-                    notesInChord.push(note);
-                    noteIndices.add(noteNames.indexOf(note));
-                }
-            });
-
-            if (noteIndices.size === 0) {
-                chordResultEl.textContent = '--';
-                chordNotesResultEl.textContent = '--';
-                return;
-            }
-
-            const uniqueNotes = Array.from(noteIndices).map(i => noteNames[i]);
-            chordNotesResultEl.textContent = uniqueNotes.map(n => `${n} (${noteNamesWithAccents[n]})`).join(' - ');
-
-            // Algoritmo simples de identificação de acordes
-            // (Este é um sistema simplificado, um sistema completo é muito complexo)
-            const rootNoteIndex = noteNames.indexOf(notesInChord[0]);
-            const intervals = uniqueNotes.map(note => (noteNames.indexOf(note) - rootNoteIndex + 12) % 12).sort((a,b) => a-b);
-            
-            let chordName = notesInChord[0];
-            const intervalsStr = JSON.stringify(intervals);
-
-            if (intervalsStr === JSON.stringify([0, 4, 7])) chordName += ' (Maior)';
-            else if (intervalsStr === JSON.stringify([0, 3, 7])) chordName += 'm (Menor)';
-            else if (intervalsStr === JSON.stringify([0, 4, 7, 10])) chordName += '7 (Sétima Dominante)';
-            else if (intervalsStr === JSON.stringify([0, 3, 7, 10])) chordName += 'm7 (Sétima Menor)';
-            else if (intervalsStr === JSON.stringify([0, 4, 7, 11])) chordName += 'Maj7 (Sétima Maior)';
-            else if (intervalsStr === JSON.stringify([0, 3, 6, 10])) chordName += 'm7(b5) (Meio Diminuto)';
-            else if (intervalsStr === JSON.stringify([0, 3, 6])) chordName += '° (Diminuto)';
-            else if (intervalsStr === JSON.stringify([0, 5, 7])) chordName += 'sus4';
-            else if (intervalsStr === JSON.stringify([0, 2, 7])) chordName += 'sus2';
-            else chordName += ' (Desconhecido)';
-
-            chordResultEl.textContent = chordName;
-        }
-
-        chordCanvas.addEventListener('click', (e) => {
-            const rect = chordCanvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-
-            const string = Math.floor(x / STRING_WIDTH) - 1;
-            const fret = Math.round(y / FRET_HEIGHT);
-            
-            if (string >= 0 && string < NUM_STRINGS) {
-                if (fingering[string] === fret) {
-                    fingering[string] = -1; // Desmarcar ou marcar como não tocada
-                } else {
-                    fingering[string] = fret;
-                }
-                drawChordFretboard();
-                identifyChord();
-            }
-        });
-        
-        clearChordBtn.addEventListener('click', () => {
-            fingering = [-1, -1, -1, -1, -1, -1];
-            drawChordFretboard();
-            identifyChord();
-        });
-
-        downloadChordPngBtn.addEventListener('click', () => {
-            const diagramCanvas = document.createElement('canvas');
-            const PADDING = 20;
-            const FRET_H = 40;
-            const STRING_W = 30;
-            const minFret = Math.max(1, ...fingering.filter(f => f > 0));
-            const maxFret = Math.max(...fingering.filter(f => f > 0));
-            
-            let startFret = 0;
-            if (minFret > 0 && maxFret > 4) {
-                startFret = minFret - 1;
-            }
-            
-            const diagramHeight = FRET_H * 5 + PADDING * 2;
-            const diagramWidth = STRING_W * (NUM_STRINGS - 1) + PADDING * 2;
-            
-            diagramCanvas.width = diagramWidth;
-            diagramCanvas.height = diagramHeight;
-            const dCtx = diagramCanvas.getContext('2d');
-            
-            dCtx.fillStyle = 'white';
-            dCtx.fillRect(0, 0, diagramWidth, diagramHeight);
-            
-            // Desenha trastes e cordas
-            for (let i = 0; i < NUM_STRINGS; i++) {
-                dCtx.beginPath();
-                dCtx.moveTo(PADDING + i * STRING_W, PADDING);
-                dCtx.lineTo(PADDING + i * STRING_W, diagramHeight - PADDING);
-                dCtx.strokeStyle = '#333';
-                dCtx.stroke();
-            }
-            for (let i = 0; i < 6; i++) {
-                dCtx.beginPath();
-                dCtx.moveTo(PADDING, PADDING + i * FRET_H);
-                dCtx.lineTo(diagramWidth - PADDING, PADDING + i * FRET_H);
-                dCtx.lineWidth = (i === 0 && startFret === 0) ? 3 : 1;
-                dCtx.strokeStyle = '#000';
-                dCtx.stroke();
-            }
-
-            // Fret number
-            if (startFret > 0) {
-                dCtx.fillStyle = 'black';
-                dCtx.font = '14px sans-serif';
-                dCtx.fillText(`${startFret + 1}ª`, PADDING - 15, PADDING + FRET_H);
-            }
-
-            // Desenha dedos e cordas soltas/mutadas
-            fingering.forEach((fret, string) => {
-                const x = PADDING + (NUM_STRINGS - 1 - string) * STRING_W;
-                if (fret > -1) {
-                    const y = (fret === 0) ? PADDING - 10 : PADDING + (fret - startFret) * FRET_H - FRET_H / 2;
-                    dCtx.beginPath();
-                    dCtx.arc(x, y, 8, 0, 2*Math.PI);
-                    dCtx.fillStyle = (fret === 0) ? 'transparent' : 'black';
-                    dCtx.strokeStyle = 'black';
-                    dCtx.lineWidth = 1.5;
-                    dCtx.fill();
-                    dCtx.stroke();
-                } else {
-                    const y = PADDING - 10;
-                    dCtx.font = '16px sans-serif';
-                    dCtx.fillStyle = 'black';
-                    dCtx.fillText('x', x-4, y+4);
-                }
-            });
-
-            const link = document.createElement('a');
-            link.download = `${chordResultEl.textContent.replace(/\s/g, '_') || 'acorde'}.png`;
-            link.href = diagramCanvas.toDataURL();
-            link.click();
-        });
-
-        drawChordFretboard();
-
-        // --- LÓGICA DO IDENTIFICADOR DE NOTAS ---
-        const noteCanvas = document.getElementById('note-fretboard-canvas');
-        const noteCtx = noteCanvas.getContext('2d');
-        const toggleAllNotesBtn = document.getElementById('toggle-all-notes');
-        let showAllNotes = false;
-        
-        const NOTE_FRET_HEIGHT = 40;
-        const NOTE_STRING_WIDTH = 60;
-        const NOTE_NUM_FRETS = 12;
-
-        function drawNoteFretboard() {
-            const canvasWidth = NOTE_STRING_WIDTH * (NOTE_NUM_FRETS + 1.5);
-            const canvasHeight = NOTE_FRET_HEIGHT * (NUM_STRINGS + 1);
-            noteCanvas.width = canvasWidth;
-            noteCanvas.height = canvasHeight;
-
-            noteCtx.fillStyle = '#f3d9b1'; // Cor de madeira clara
-            noteCtx.fillRect(0, 0, canvasWidth, canvasHeight);
-
-            // Desenha cordas (horizontal)
-            for (let i = 0; i < NUM_STRINGS; i++) {
-                const y = NOTE_FRET_HEIGHT * (i + 1);
-                noteCtx.beginPath();
-                noteCtx.moveTo(NOTE_STRING_WIDTH / 2, y);
-                noteCtx.lineTo(canvasWidth - NOTE_STRING_WIDTH / 2, y);
-                noteCtx.strokeStyle = '#555';
-                noteCtx.lineWidth = 1 + i * 0.3; // Cordas mais grossas em baixo
-                noteCtx.stroke();
-            }
-
-            // Desenha trastes (vertical)
-            for (let i = 0; i <= NOTE_NUM_FRETS; i++) {
-                const x = NOTE_STRING_WIDTH * (i + 1);
-                noteCtx.beginPath();
-                noteCtx.moveTo(x, NOTE_FRET_HEIGHT / 2);
-                noteCtx.lineTo(x, canvasHeight - NOTE_FRET_HEIGHT / 2);
-                noteCtx.strokeStyle = '#aaa';
-                noteCtx.lineWidth = (i === 0) ? 6 : 2;
-                noteCtx.stroke();
-            }
-
-            // Desenha marcações
-            [3, 5, 7, 9, 12].forEach(fret => {
-                const x = NOTE_STRING_WIDTH * (fret + 0.5);
-                let y = canvasHeight / 2;
-                if (fret === 12) y -= NOTE_FRET_HEIGHT / 2;
-                
-                noteCtx.beginPath();
-                noteCtx.arc(x, y, 6, 0, 2 * Math.PI);
-                noteCtx.fillStyle = '#a0522d';
-                noteCtx.fill();
-
-                if (fret === 12) {
-                    noteCtx.beginPath();
-                    noteCtx.arc(x, y + NOTE_FRET_HEIGHT, 6, 0, 2 * Math.PI);
-                    noteCtx.fill();
-                }
-            });
-
-            if (showAllNotes) {
-                noteCtx.font = '14px sans-serif';
-                noteCtx.textAlign = 'center';
-                noteCtx.fillStyle = 'black';
-                for (let s = 0; s < NUM_STRINGS; s++) {
-                    for (let f = 0; f <= NOTE_NUM_FRETS; f++) {
-                        const note = getNoteOnFret(s, f);
-                        const x = NOTE_STRING_WIDTH * (f + 0.5);
-                        const y = NOTE_FRET_HEIGHT * (s + 1) + 5;
-                        noteCtx.fillText(`${note} (${noteNamesWithAccents[note]})`, x, y);
-                    }
-                }
-            }
-        }
-        
-        noteCanvas.addEventListener('click', (e) => {
-            if (showAllNotes) return;
-            const rect = noteCanvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            
-            const string = Math.floor(y / NOTE_FRET_HEIGHT) - 1;
-            const fret = Math.floor(x / NOTE_STRING_WIDTH) - 1;
-
-            if (string >= 0 && string < NUM_STRINGS && fret >= 0 && fret <= NOTE_NUM_FRETS) {
-                drawNoteFretboard(); // Limpa notas anteriores
-                const note = getNoteOnFret(string, fret);
-                const noteX = NOTE_STRING_WIDTH * (fret + 0.5);
-                const noteY = NOTE_FRET_HEIGHT * (string + 1);
-
-                noteCtx.beginPath();
-                noteCtx.arc(noteX, noteY, 15, 0, 2 * Math.PI);
-                noteCtx.fillStyle = 'rgba(79, 70, 229, 0.8)';
-                noteCtx.fill();
-                
-                noteCtx.font = 'bold 12px sans-serif';
-                noteCtx.textAlign = 'center';
-                noteCtx.fillStyle = 'white';
-                noteCtx.fillText(`${note}`, noteX, noteY + 5);
-            }
-        });
-
-        toggleAllNotesBtn.addEventListener('click', () => {
-            showAllNotes = !showAllNotes;
-            drawNoteFretboard();
-            toggleAllNotesBtn.textContent = showAllNotes ? 'Ocultar Todas as Notas' : 'Mostrar Todas as Notas';
-        });
-
-        drawNoteFretboard();
-        
-        // --- LÓGICA DO METRÔNOMO ---
-        const metroBpmDisplay = document.getElementById('metro-bpm-display');
-        const metroSlider = document.getElementById('metro-slider');
-        const metroSignatureSelect = document.getElementById('metro-signature');
-        const metroSoundSelect = document.getElementById('metro-sound');
-        const metroStartStopBtn = document.getElementById('metro-start-stop');
-        let isMetronomePlaying = false;
-        let metroLoop;
-        let beatCount = 0;
-
-        const sounds = {
-            classic: new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.001, decay: 0.1, sustain: 0, release: 0.1 } }).toDestination(),
-            drop: new Tone.MembraneSynth({ pitchDecay: 0.01, octaves: 6, oscillator: { type: 'sine' }, envelope: { attack: 0.001, decay: 0.2, sustain: 0.01, release: 0.2 } }).toDestination()
-        };
-
-        function updateMetronome() {
-            Tone.Transport.bpm.value = metroSlider.value;
-            metroBpmDisplay.textContent = metroSlider.value;
-        }
-
-        function startMetronome() {
-            if (Tone.context.state !== 'running') {
-                Tone.start();
-            }
-            beatCount = 0;
-            const signature = parseInt(metroSignatureSelect.value);
-            metroLoop = new Tone.Loop(time => {
-                const sound = sounds[metroSoundSelect.value];
-                let note = 'C5';
-                if (signature > 1 && beatCount % signature === 0) {
-                    note = 'G5'; // Acento na primeira batida
-                }
-                sound.triggerAttackRelease(note, '8n', time);
-                beatCount++;
-            }, '4n').start(0);
-            
-            Tone.Transport.start();
-            isMetronomePlaying = true;
-            metroStartStopBtn.textContent = 'Parar';
-            metroStartStopBtn.classList.replace('bg-green-500', 'bg-red-500');
-            metroStartStopBtn.classList.replace('hover:bg-green-600', 'hover:bg-red-600');
-        }
-
-        function stopMetronome() {
-            Tone.Transport.stop();
-            if (metroLoop) {
-                metroLoop.dispose();
-            }
-            isMetronomePlaying = false;
-            metroStartStopBtn.textContent = 'Iniciar';
-            metroStartStopBtn.classList.replace('bg-red-500', 'bg-green-500');
-            metroStartStopBtn.classList.replace('hover:bg-red-600', 'hover:bg-green-600');
-        }
-
-        metroSlider.addEventListener('input', updateMetronome);
-        metroStartStopBtn.addEventListener('click', () => {
-            if (isMetronomePlaying) {
-                stopMetronome();
-            } else {
-                startMetronome();
-            }
-        });
-        updateMetronome();
-        
-        // --- LÓGICA DO EDITOR DE TABLATURAS ---
-        const tabTextarea = document.getElementById('tab-textarea');
-        const downloadTabTxtBtn = document.getElementById('download-tab-txt');
-        const downloadTabPngBtn = document.getElementById('download-tab-png');
-        const clearTabBtn = document.getElementById('clear-tab');
-        
-        const tabTemplate = 
-`e|-----------------------------------------------------------------|
-B|-----------------------------------------------------------------|
-G|-----------------------------------------------------------------|
-D|-----------------------------------------------------------------|
-A|-----------------------------------------------------------------|
-E|-----------------------------------------------------------------|`;
-
-        tabTextarea.value = tabTemplate;
-
-        clearTabBtn.addEventListener('click', () => {
-            tabTextarea.value = tabTemplate;
-        });
-
-        downloadTabTxtBtn.addEventListener('click', () => {
-            const blob = new Blob([tabTextarea.value], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'minha_tablatura.txt';
-            a.click();
-            URL.revokeObjectURL(url);
-        });
-
-        downloadTabPngBtn.addEventListener('click', () => {
-            const lines = tabTextarea.value.split('\n');
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            const FONT_SIZE = 16;
-            const LINE_HEIGHT = 20;
-            const PADDING = 20;
-
-            ctx.font = `${FONT_SIZE}px monospace`;
-            const textWidth = Math.max(...lines.map(line => ctx.measureText(line).width));
-
-            canvas.width = textWidth + PADDING * 2;
-            canvas.height = lines.length * LINE_HEIGHT + PADDING * 2;
-            
-            ctx.fillStyle = 'white';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            ctx.fillStyle = 'black';
-            ctx.font = `${FONT_SIZE}px monospace`;
-            ctx.textBaseline = 'top';
-            lines.forEach((line, i) => {
-                ctx.fillText(line, PADDING, PADDING + i * LINE_HEIGHT);
-            });
-
-            const link = document.createElement('a');
-            link.download = 'minha_tablatura.png';
-            link.href = canvas.toDataURL();
-            link.click();
-        });
-
-    });
-    
-    // --- LÓGICA DO SERVICE WORKER (PWA) ---
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('sw.js').then(registration => {
-                console.log('ServiceWorker registration successful with scope: ', registration.scope);
-            }, err => {
-                console.log('ServiceWorker registration failed: ', err);
-            });
-        });
+  <style>
+    .wood {
+      background: linear-gradient(180deg, #f7e6c5 0%, #e8d2a6 100%);
     }
-    </script>
+    .glass {
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    .tap-target { touch-action: manipulation; }
+    canvas { image-rendering: crisp-edges; }
+    /* barra scroll bonita */
+    .scroll-thin::-webkit-scrollbar { height: 6px; width: 6px; }
+    .scroll-thin::-webkit-scrollbar-thumb { background:#9ca3af; border-radius: 9999px; }
+  </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 antialiased">
+  <!-- Sidebar -->
+  <nav id="sidebar" class="fixed top-0 left-0 h-full w-72 bg-white dark:bg-gray-800 shadow-xl z-50 -translate-x-full transition-transform duration-300">
+    <div class="p-5">
+      <h2 class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">Menu</h2>
+      <ul class="mt-6 space-y-2">
+        <li><a href="#" class="nav-link flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700" data-page="home"><i data-lucide="home"></i> Página Inicial</a></li>
+        <li><a href="#" class="nav-link flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700" data-page="tuner"><i data-lucide="tuning-fork"></i> Afinador</a></li>
+        <li><a href="#" class="nav-link flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700" data-page="chord-identifier"><i data-lucide="guitar"></i> Identificador de Acordes</a></li>
+        <li><a href="#" class="nav-link flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700" data-page="note-identifier"><i data-lucide="music-2"></i> Identificador de Notas</a></li>
+        <li><a href="#" class="nav-link flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700" data-page="metronome"><i data-lucide="gauge"></i> Metrônomo</a></li>
+        <li><a href="#" class="nav-link flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700" data-page="tab-editor"><i data-lucide="file-text"></i> Editor de Tablaturas</a></li>
+      </ul>
+    </div>
+  </nav>
+  <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-40 hidden"></div>
+
+  <!-- Header -->
+  <header class="sticky top-0 z-30 bg-white/80 dark:bg-gray-800/80 glass shadow-sm">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <button id="menu-button" class="p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        <i data-lucide="menu"></i>
+      </button>
+      <h1 class="text-xl md:text-2xl font-bold text-indigo-600 dark:text-indigo-400">Matheus Assis - Aula de Violão</h1>
+      <div class="w-6"></div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-6">
+    <!-- HOME -->
+    <section id="home-page" class="page">
+      <div class="relative overflow-hidden rounded-2xl wood p-8 md:p-12 shadow-lg">
+        <div class="max-w-3xl">
+          <h2 class="text-4xl font-extrabold drop-shadow">Seu hub de estudos de violão</h2>
+          <p class="mt-3 text-lg opacity-90">Afinador cromático, identificadores, metrônomo e editor de tablaturas — tudo em um PWA leve e instalável.</p>
+          <div class="mt-6 flex flex-wrap gap-3">
+            <a class="quick nav-link inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl shadow tap-target" data-page="tuner"><i data-lucide="tuning-fork" class="w-5 h-5"></i> Abrir Afinador</a>
+            <a class="quick nav-link inline-flex items-center gap-2 bg-gray-900 hover:bg-black text-white px-4 py-2 rounded-xl shadow tap-target" data-page="chord-identifier"><i data-lucide="guitar" class="w-5 h-5"></i> Identificar Acorde</a>
+          </div>
+        </div>
+        <svg class="absolute -right-10 -bottom-10 w-72 md:w-[28rem] opacity-60 pointer-events-none" viewBox="0 0 512 512" fill="none">
+          <path d="M319 37c0-11 9-20 20-20h33c11 0 20 9 20 20v86a20 20 0 0 1-12 18l-41 18a20 20 0 0 0-12 18v170a72 72 0 1 1-40-64V71z" stroke="currentColor" stroke-width="24"/>
+          <circle cx="224" cy="383" r="48" stroke="currentColor" stroke-width="24"/>
+        </svg>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-6 mt-8">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow">
+          <div class="flex items-center gap-3"><i data-lucide="tuning-fork"></i><h3 class="font-bold text-lg">Afinador cromático</h3></div>
+          <p class="text-sm opacity-80 mt-2">Compatível com microfone de celular e PC. Mostra nota, frequência e cents.</p>
+        </div>
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow">
+          <div class="flex items-center gap-3"><i data-lucide="guitar"></i><h3 class="font-bold text-lg">Identificador de acordes</h3></div>
+          <p class="text-sm opacity-80 mt-2">Toque no braço, use setas, ou digite “Bb7M”. Baixe o PNG com o nome centralizado.</p>
+        </div>
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow">
+          <div class="flex items-center gap-3"><i data-lucide="music-2"></i><h3 class="font-bold text-lg">Notas e quiz</h3></div>
+          <p class="text-sm opacity-80 mt-2">Braço responsivo + exercício “Descubra a nota” (múltipla escolha).</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- TUNER -->
+    <section id="tuner-page" class="page hidden">
+      <div class="max-w-xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow p-6">
+        <h2 class="text-2xl font-bold text-center mb-4">Afinador Cromático</h2>
+        <div id="tuner-status" class="text-center text-sm mb-3 h-5"></div>
+
+        <div class="relative h-24 flex items-center justify-center mb-2">
+          <div class="w-full h-1 bg-gray-300 dark:bg-gray-700 rounded"></div>
+          <div id="tuner-needle" class="absolute w-1 h-24 bg-indigo-500 rounded" style="transform: rotate(0deg);"></div>
+          <div class="absolute w-3 h-3 bg-white dark:bg-gray-800 border-2 border-indigo-500 rounded-full"></div>
+        </div>
+        <div class="flex justify-between text-xs text-gray-500 px-2">
+          <span>-50</span><span>Em tom</span><span>+50</span>
+        </div>
+
+        <div class="mt-4 text-center">
+          <div id="note-display" class="text-7xl font-extrabold tracking-tight">-</div>
+          <div id="frequency-display" class="text-lg opacity-80">0 Hz</div>
+          <div id="reference-display" class="text-xs mt-1 opacity-70">A4 = 440 Hz</div>
+        </div>
+
+        <div class="mt-6 flex items-center justify-center gap-3">
+          <button id="start-tuner" class="bg-green-500 hover:bg-green-600 text-white font-semibold px-4 py-2 rounded-lg">Iniciar Afinador</button>
+          <label class="text-sm flex items-center gap-2">
+            A4
+            <input id="a4-input" type="number" value="440" min="410" max="466" step="1" class="w-20 px-2 py-1 rounded bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600">
+            Hz
+          </label>
+        </div>
+
+        <details class="mt-6 open:bg-gray-50 dark:open:bg-gray-700/40 rounded p-4">
+          <summary class="cursor-pointer font-semibold">Frequências padrão das notas e afinação do violão</summary>
+          <div class="text-sm mt-3 leading-6">
+            <p>Escala temperada igual, A4 = <span id="a4-ref">440</span> Hz.</p>
+            <ul class="list-disc ml-6 mt-2">
+              <li>E2 ≈ 82.41 Hz</li>
+              <li>A2 ≈ 110.00 Hz</li>
+              <li>D3 ≈ 146.83 Hz</li>
+              <li>G3 ≈ 196.00 Hz</li>
+              <li>B3 ≈ 246.94 Hz</li>
+              <li>E4 ≈ 329.63 Hz</li>
+            </ul>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <!-- CHORD IDENTIFIER -->
+    <section id="chord-identifier-page" class="page hidden">
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow p-6">
+        <h2 class="text-2xl font-bold text-center mb-4">Identificador de Acordes</h2>
+
+        <div class="flex flex-col lg:flex-row gap-6">
+          <div class="flex-1">
+            <div class="overflow-auto border dark:border-gray-700 rounded-lg scroll-thin">
+              <canvas id="chord-fretboard-canvas" class="tap-target"></canvas>
+            </div>
+            <div class="mt-3 grid grid-cols-6 gap-2">
+              <!-- setas por corda -->
+              <div class="col-span-6 text-sm opacity-70">Ajuste por corda (6 = grave / 1 = aguda)</div>
+              <template id="arrowControlsTemplate">
+                <div class="flex items-center justify-between gap-2 bg-gray-100 dark:bg-gray-700 rounded px-2 py-1">
+                  <span class="text-xs w-4 text-center"></span>
+                  <div class="flex gap-1">
+                    <button class="arrow-down bg-white dark:bg-gray-800 border px-2 rounded">▼</button>
+                    <button class="arrow-up bg-white dark:bg-gray-800 border px-2 rounded">▲</button>
+                  </div>
+                </div>
+              </template>
+              <div id="arrowControls" class="col-span-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2"></div>
+            </div>
+          </div>
+
+          <div class="flex-[1.1]">
+            <div class="grid sm:grid-cols-2 gap-3">
+              <input id="chord-search" placeholder="Digite ex: Bb7M, C#m7(b5)..." class="px-3 py-2 rounded border bg-gray-50 dark:bg-gray-700">
+              <button id="apply-search" class="bg-indigo-600 hover:bg-indigo-700 text-white rounded px-3">Buscar</button>
+
+              <div class="flex gap-2 items-center">
+                <label class="text-sm">Tonalidade:</label>
+                <select id="root-select" class="flex-1 px-2 py-2 rounded border bg-gray-50 dark:bg-gray-700">
+                  <option>C</option><option>C#</option><option>Db</option><option>D</option><option>D#</option><option>Eb</option>
+                  <option>E</option><option>F</option><option>F#</option><option>Gb</option><option>G</option><option>G#</option><option>Ab</option>
+                  <option>A</option><option>A#</option><option>Bb</option><option>B</option>
+                </select>
+              </div>
+
+              <div class="flex gap-2 items-center">
+                <label class="text-sm">Qualidade:</label>
+                <select id="quality-select" class="flex-1 px-2 py-2 rounded border bg-gray-50 dark:bg-gray-700">
+                  <option value="">Maior</option>
+                  <option value="m">Menor</option>
+                  <option value="dim">Diminuto</option>
+                  <option value="aug">Aumentado</option>
+                  <option value="sus2">Sus2</option>
+                  <option value="sus4">Sus4</option>
+                </select>
+              </div>
+
+              <div class="flex gap-2 items-center">
+                <label class="text-sm">Extensões:</label>
+                <select id="extension-select" class="flex-1 px-2 py-2 rounded border bg-gray-50 dark:bg-gray-700">
+                  <option value="">—</option>
+                  <option value="7">7</option>
+                  <option value="M7">7M / Maj7</option>
+                  <option value="6">6</option>
+                  <option value="9">9</option>
+                  <option value="11">11</option>
+                  <option value="13">13</option>
+                  <option value="m7b5">m7(b5)</option>
+                  <option value="add9">add9</option>
+                  <option value="b9">♭9</option>
+                  <option value="#11">#11</option>
+                </select>
+              </div>
+
+              <button id="apply-builder" class="sm:col-span-2 bg-gray-900 hover:bg-black text-white rounded px-3 py-2">Gerar a partir dos menus</button>
+            </div>
+
+            <div class="mt-4">
+              <h3 class="font-semibold">Acorde identificado:</h3>
+              <div id="chord-result" class="text-3xl font-bold text-indigo-500">--</div>
+              <div id="chord-notes-result" class="text-sm opacity-80 mt-1">--</div>
+
+              <div class="mt-4 flex flex-wrap gap-2">
+                <button id="download-chord-png" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded">Baixar PNG</button>
+                <button id="clear-chord" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded">Limpar</button>
+              </div>
+
+              <details class="mt-5">
+                <summary class="font-semibold cursor-pointer">Formas populares (presets)</summary>
+                <div id="preset-buttons" class="mt-3 flex flex-wrap gap-2 text-sm"></div>
+              </details>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NOTE IDENTIFIER -->
+    <section id="note-identifier-page" class="page hidden">
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow p-6">
+        <h2 class="text-2xl font-bold text-center mb-4">Identificador de Notas</h2>
+        <div class="w-full overflow-x-auto">
+          <canvas id="note-fretboard-canvas" class="mx-auto border dark:border-gray-700 rounded-md tap-target"></canvas>
+        </div>
+        <div class="mt-3 flex items-center justify-center gap-2">
+          <button id="toggle-all-notes" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded">Mostrar Todas</button>
+          <button id="resize-fretboard" class="bg-gray-900 hover:bg-black text-white px-3 py-2 rounded">Ajustar ao tamanho</button>
+        </div>
+
+        <div class="mt-8 border-t pt-6">
+          <h3 class="font-semibold mb-2">Exercício: descubra a nota</h3>
+          <div id="quiz-area" class="space-y-3">
+            <button id="start-quiz" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded">Iniciar Quiz</button>
+            <div id="quiz-canvas-wrap" class="hidden overflow-x-auto">
+              <canvas id="quiz-canvas" class="mx-auto border dark:border-gray-700 rounded-md"></canvas>
+            </div>
+            <div id="quiz-options" class="hidden grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
+            <div id="quiz-feedback" class="text-sm h-6"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- METRONOME -->
+    <section id="metronome-page" class="page hidden">
+      <div class="max-w-sm mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow p-6 text-center">
+        <h2 class="text-2xl font-bold mb-4">Metrônomo</h2>
+        <div id="metro-bpm-display" class="text-7xl font-bold">120</div>
+        <p class="text-sm -mt-2 mb-4 opacity-70">BPM</p>
+        <input id="metro-slider" type="range" min="40" max="240" value="120" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700" />
+        <div class="mt-4">
+          <label class="block text-sm mb-1">Compasso:</label>
+          <select id="metro-signature" class="w-full px-2 py-2 rounded border bg-gray-50 dark:bg-gray-700">
+            <option value="4">4/4</option>
+            <option value="3">3/4</option>
+            <option value="2">2/4</option>
+            <option value="1">Sem acento</option>
+          </select>
+        </div>
+        <div class="mt-4">
+          <label class="block text-sm mb-1">Som:</label>
+          <select id="metro-sound" class="w-full px-2 py-2 rounded border bg-gray-50 dark:bg-gray-700">
+            <option value="classic">Clássico</option>
+            <option value="drop">Gota</option>
+          </select>
+        </div>
+        <div class="mt-6">
+          <button id="metro-start-stop" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">Iniciar</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB EDITOR -->
+    <section id="tab-editor-page" class="page hidden">
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow p-6">
+        <h2 class="text-2xl font-bold text-center mb-4">Editor de Tablaturas</h2>
+        <textarea id="tab-textarea" class="w-full h-96 p-4 font-mono text-sm bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg" spellcheck="false"></textarea>
+        <div class="mt-3 flex flex-wrap items-center gap-2">
+          <button id="format-tab" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded">Formatar (15 traços / compasso)</button>
+          <button id="download-tab-txt" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded">Baixar .txt</button>
+          <button id="download-tab-png" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded">Baixar .png</button>
+          <button id="clear-tab" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded">Limpar</button>
+        </div>
+        <p class="text-xs opacity-70 mt-2">Obs.: ao quebrar linha, a afinação é repetida automaticamente.</p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // ============ ÍCONES & NAVEGAÇÃO ============
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+
+      const menuButton = document.getElementById('menu-button');
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebar-overlay');
+      const navLinks = document.querySelectorAll('.nav-link');
+      const pages = document.querySelectorAll('.page');
+
+      const openSidebar = () => { sidebar.classList.remove('-translate-x-full'); overlay.classList.remove('hidden'); };
+      const closeSidebar = () => { sidebar.classList.add('-translate-x-full'); overlay.classList.add('hidden'); };
+      menuButton.addEventListener('click', openSidebar);
+      overlay.addEventListener('click', closeSidebar);
+
+      navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          const pageId = link.dataset.page + '-page';
+          pages.forEach(p => p.classList.add('hidden'));
+          document.getElementById(pageId).classList.remove('hidden');
+          closeSidebar();
+        });
+      });
+
+      // ============ AFINADOR ============
+      const startBtn = document.getElementById('start-tuner');
+      const tunerStatus = document.getElementById('tuner-status');
+      const noteDisplay = document.getElementById('note-display');
+      const freqDisplay = document.getElementById('frequency-display');
+      const needle = document.getElementById('tuner-needle');
+      const a4Input = document.getElementById('a4-input');
+      const a4Ref = document.getElementById('a4-ref');
+
+      let audioCtx = null;
+      let analyser = null;
+      let mediaStream = null;
+      let detector = null;
+      let rafId = null;
+      let A4 = 440;
+
+      const NAMES_SHARP = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+      function midiToName(m) {
+        const n = NAMES_SHARP[m % 12];
+        const oct = Math.floor(m/12)-1;
+        return n + oct;
+      }
+
+      function getTargetFreq(midi) {
+        // f = 440 * 2^((m-69)/12)
+        return A4 * Math.pow(2, (midi - 69) / 12);
+      }
+      function centsOff(f, ft) {
+        return 1200 * Math.log2(f/ft);
+      }
+
+      async function startTuner() {
+        try {
+          A4 = parseFloat(a4Input.value) || 440;
+          a4Ref.textContent = A4.toFixed(0);
+          startBtn.disabled = true;
+          if (audioCtx) stopTuner();
+
+          mediaStream = await navigator.mediaDevices.getUserMedia({
+            audio: {
+              echoCancellation: false,
+              noiseSuppression: false,
+              autoGainControl: false
+            }
+          });
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          const source = audioCtx.createMediaStreamSource(mediaStream);
+          analyser = audioCtx.createAnalyser();
+          analyser.fftSize = 4096;
+          analyser.smoothingTimeConstant = 0.85;
+          source.connect(analyser);
+
+          detector = Pitchy.PitchDetector.forFloat32Array(audioCtx.sampleRate);
+          const buf = new Float32Array(analyser.fftSize);
+
+          tunerStatus.textContent = 'Afinador pronto!';
+          startBtn.textContent = 'Parar Afinador';
+          startBtn.classList.remove('bg-green-500','hover:bg-green-600');
+          startBtn.classList.add('bg-red-600','hover:bg-red-700');
+          startBtn.disabled = false;
+
+          const loop = () => {
+            if (!audioCtx) return;
+            analyser.getFloatTimeDomainData(buf);
+            const [pitch, clarity] = detector.findPitch(buf, audioCtx.sampleRate);
+            if (clarity > 0.92 && pitch > 40 && pitch < 2000) {
+              // calc midi
+              const midi = Math.round(69 + 12 * Math.log2(pitch / A4));
+              const target = getTargetFreq(midi);
+              const cents = centsOff(pitch, target);
+              const name = midiToName(midi);
+              noteDisplay.textContent = name.replace(/\d+$/,''); // só a nota
+              freqDisplay.textContent = pitch.toFixed(2) + ' Hz';
+
+              // rotação: 50 cents = 90deg
+              const rotation = Math.max(-90, Math.min(90, cents * (90/50)));
+              needle.style.transform = `rotate(${rotation}deg)`;
+              needle.classList.toggle('bg-green-500', Math.abs(cents) < 5);
+              needle.classList.toggle('bg-indigo-500', Math.abs(cents) >= 5);
+            }
+            rafId = requestAnimationFrame(loop);
+          };
+          loop();
+        } catch (err) {
+          console.error(err);
+          tunerStatus.textContent = 'Erro ao acessar o microfone. Verifique permissões.';
+          startBtn.disabled = false;
+        }
+      }
+      function stopTuner() {
+        if (rafId) cancelAnimationFrame(rafId);
+        rafId = null;
+        if (audioCtx) { audioCtx.close(); audioCtx = null; }
+        if (mediaStream) {
+          mediaStream.getTracks().forEach(t => t.stop());
+          mediaStream = null;
+        }
+        detector = null;
+        analyser = null;
+        tunerStatus.textContent = 'Clique em "Iniciar" para usar o microfone';
+        startBtn.textContent = 'Iniciar Afinador';
+        startBtn.classList.remove('bg-red-600','hover:bg-red-700');
+        startBtn.classList.add('bg-green-500','hover:bg-green-600');
+        noteDisplay.textContent = '-';
+        freqDisplay.textContent = '0 Hz';
+        needle.style.transform = 'rotate(0deg)';
+      }
+      startBtn.addEventListener('click', () => audioCtx ? stopTuner() : startTuner());
+      a4Input.addEventListener('change', () => { A4 = parseFloat(a4Input.value)||440; a4Ref.textContent = A4.toFixed(0); });
+
+      // ============ ACORDES ============
+      const chordCanvas = document.getElementById('chord-fretboard-canvas');
+      const cctx = chordCanvas.getContext('2d', { alpha: false });
+      const NUM_STRINGS = 6;
+      const TOTAL_FRETS = 22;
+      let FRET_H = 56;
+      let STR_W = 44;
+
+      // Tuning correto E A D G B e (6->1), usado para cálculo de notas
+      const NOTE_NAMES = ["E","F","F#","G","G#","A","A#","B","C","C#","D","D#"];
+      const TUNING_IDX = [0,5,10,3,7,0]; // E, A, D, G, B, E (left->right = corda 6 a 1)
+      const PT_NAMES = { "E":"Mi","F":"Fá","F#":"Fá#","G":"Sol","G#":"Sol#","A":"Lá","A#":"Lá#","B":"Si","C":"Dó","C#":"Dó#","D":"Ré","D#":"Ré#" };
+
+      let fingering = [-1,-1,-1,-1,-1,-1]; // -1 = mutada; 0 = solta; >0 = casa
+      function resizeChordCanvas() {
+        const width = Math.min(900, chordCanvas.parentElement.clientWidth - 2);
+        STR_W = Math.max(38, Math.floor(width / (NUM_STRINGS + 1)));
+        FRET_H = Math.round(STR_W * 1.25);
+        chordCanvas.width = STR_W * (NUM_STRINGS + 1);
+        chordCanvas.height = FRET_H * (TOTAL_FRETS + 1);
+      }
+      window.addEventListener('resize', () => { resizeChordCanvas(); drawChord(); });
+
+      function drawChord() {
+        const W = chordCanvas.width, H = chordCanvas.height;
+        cctx.fillStyle = '#ffffff'; cctx.fillRect(0,0,W,H);
+
+        // cordas (verticais)
+        for (let i=0;i<NUM_STRINGS;i++){
+          const x = STR_W * (i+1);
+          cctx.beginPath(); cctx.moveTo(x,0); cctx.lineTo(x,H);
+          cctx.strokeStyle = '#bbb'; cctx.lineWidth = 2; cctx.stroke();
+        }
+        // trastes (horizontais)
+        for (let f=0; f<=TOTAL_FRETS; f++){
+          const y = FRET_H*f + FRET_H/2;
+          cctx.beginPath(); cctx.moveTo(STR_W/2, y); cctx.lineTo(W-STR_W/2, y);
+          cctx.strokeStyle = '#333'; cctx.lineWidth = (f===0?6:2); cctx.stroke();
+          if (f>0){ cctx.fillStyle='#111'; cctx.font='14px sans-serif'; cctx.textAlign='center'; cctx.fillText(f, STR_W/4, y+5);}
+        }
+        // marcações de escala
+        [3,5,7,9,12,15,17,19,21].forEach(f=>{
+          const y = FRET_H*f;
+          const x = W/2;
+          cctx.beginPath(); cctx.arc(x,y,5,0,Math.PI*2); cctx.fillStyle='#ddd'; cctx.fill();
+          if (f===12){ // dupla
+            cctx.beginPath(); cctx.arc(x-STR_W,y,5,0,Math.PI*2); cctx.fill();
+            cctx.beginPath(); cctx.arc(x+STR_W,y,5,0,Math.PI*2); cctx.fill();
+          }
+        });
+        // dedos / X / O
+        fingering.forEach((fret,string)=>{
+          const x = STR_W * (string+1);
+          if (fret === -1) { // X
+            cctx.fillStyle = '#d10'; cctx.font='bold 18px sans-serif'; cctx.textAlign='center';
+            cctx.fillText('X', x, FRET_H/3);
+          } else if (fret === 0) { // O (solta)
+            cctx.beginPath(); cctx.arc(x, FRET_H/3, 10, 0, Math.PI*2);
+            cctx.strokeStyle='#111'; cctx.lineWidth=2; cctx.stroke();
+          } else if (fret > 0) {
+            const y = FRET_H*fret;
+            cctx.beginPath(); cctx.arc(x, y, 12, 0, Math.PI*2);
+            cctx.fillStyle='#111'; cctx.fill();
+          }
+        });
+      }
+
+      function getNoteOnFret(string, fret){
+        if (fret < 0) return null;
+        const idx = (TUNING_IDX[string] + fret) % 12;
+        return NOTE_NAMES[idx];
+      }
+
+      function chordFromFingering(){
+        const notes = [];
+        const setIdx = new Set();
+        for (let s=0;s<NUM_STRINGS;s++){
+          const f = fingering[s];
+          if (f>=0){
+            const n = getNoteOnFret(s, f);
+            notes.push(n);
+            setIdx.add(NOTE_NAMES.indexOf(n));
+          }
+        }
+        if (!notes.length) return {name:'--', notes:[]};
+
+        // raiz: menor nota em pitch (primeira corda grave tocada) ou primeira nota
+        let rootNote = notes[0];
+        const uniq = Array.from(setIdx).sort((a,b)=>a-b).map(i=>NOTE_NAMES[i]);
+
+        // intervalos relativos à raiz escolhida (primeira nota clicada)
+        const rootIdx = NOTE_NAMES.indexOf(rootNote);
+        const intervals = uniq.map(n=> (NOTE_NAMES.indexOf(n) - rootIdx + 12) % 12).sort((a,b)=>a-b);
+
+        // mapeamento de fórmulas (simplificado, porém mais amplo)
+        const formulas = [
+          {name:'Maior', iv:[0,4,7]},
+          {name:'Menor', iv:[0,3,7], suffix:'m'},
+          {name:'Sus2', iv:[0,2,7], suffix:'sus2'},
+          {name:'Sus4', iv:[0,5,7], suffix:'sus4'},
+          {name:'Aumentado', iv:[0,4,8], suffix:'aug'},
+          {name:'Diminuto', iv:[0,3,6], suffix:'°'},
+          {name:'7', iv:[0,4,7,10], suffix:'7'},
+          {name:'m7', iv:[0,3,7,10], suffix:'m7'},
+          {name:'Maj7', iv:[0,4,7,11], suffix:'Maj7'},
+          {name:'mMaj7', iv:[0,3,7,11], suffix:'mMaj7'},
+          {name:'6', iv:[0,4,7,9], suffix:'6'},
+          {name:'add9', iv:[0,4,7,2], suffix:'add9'},
+          {name:'m7(b5)', iv:[0,3,6,10], suffix:'m7(b5)'}
+        ];
+        let found = null;
+        for (const f of formulas){
+          if (JSON.stringify(f.iv) === JSON.stringify(intervals)){ found = f; break; }
+        }
+        const name = found ? (rootNote + (found.suffix ? (found.suffix==='Maj7'?'7M':' '+found.suffix) : '')) : (rootNote + ' (desconhecido)');
+        return {name, notes: uniq};
+      }
+
+      // interação: clique / toque
+      chordCanvas.addEventListener('click', (e)=>{
+        const r = chordCanvas.getBoundingClientRect();
+        const x = e.clientX - r.left, y = e.clientY - r.top;
+        const string = Math.floor(x / STR_W) - 1;
+        const fret = Math.round(y / FRET_H);
+        if (string>=0 && string<NUM_STRINGS){
+          if (fingering[string] === fret) fingering[string] = -1;
+          else fingering[string] = fret;
+          drawChord(); updateChordUI();
+        }
+      }, {passive:true});
+
+      function updateChordUI(){
+        const res = chordFromFingering();
+        document.getElementById('chord-result').textContent = res.name;
+        const notesText = res.notes.map(n=> `${n} (${PT_NAMES[n]})`).join(' - ') || '--';
+        document.getElementById('chord-notes-result').textContent = notesText;
+      }
+
+      // setas por corda
+      const arrowWrap = document.getElementById('arrowControls');
+      const tpl = document.getElementById('arrowControlsTemplate');
+      for (let s=0;s<6;s++){
+        const node = tpl.content.cloneNode(true);
+        node.querySelector('span').textContent = String(6 - s); // mostrar 6..1
+        const down = node.querySelector('.arrow-down');
+        const up = node.querySelector('.arrow-up');
+        ((ss)=>{
+          down.addEventListener('click', ()=>{
+            fingering[ss] = Math.max(-1, (fingering[ss]||0) - 1);
+            drawChord(); updateChordUI();
+          });
+          up.addEventListener('click', ()=>{
+            const v = fingering[ss] < 0 ? 0 : fingering[ss] + 1;
+            fingering[ss] = Math.min(TOTAL_FRETS, v);
+            drawChord(); updateChordUI();
+          });
+        })(s);
+        arrowWrap.appendChild(node);
+      }
+
+      // Busca textual e construtor
+      const chordInput = document.getElementById('chord-search');
+      document.getElementById('apply-search').addEventListener('click', ()=>{
+        const text = chordInput.value.trim();
+        if (!text) return;
+        const parsed = parseChord(text);
+        if (parsed) applyChordName(parsed);
+      });
+      document.getElementById('apply-builder').addEventListener('click', ()=>{
+        const root = document.getElementById('root-select').value;
+        let q = document.getElementById('quality-select').value;
+        const ext = document.getElementById('extension-select').value;
+        let name = root + (q ? (q==='m'?'m': (q==='dim'?'°': (q==='aug'?'+': (q)))) : '');
+        if (ext){
+          if (ext==='M7') name += '7M';
+          else name += (name.endsWith('m')||name.endsWith('°')||name.endsWith('+')?'':'') + ext;
+        }
+        const parsed = parseChord(name);
+        if (parsed) applyChordName(parsed);
+        chordInput.value = name;
+      });
+
+      // Parser simples que entende #/b e 7M/Maj7
+      function parseChord(name){
+        const norm = name.replace(/maj7/i,'7M').replace(/M7/,'7M').replace(/♭/g,'b').replace(/♯/g,'#').replace(/\s+/g,'');
+        const m = /^([A-G](?:#|b)?)(m7b5|m7\(b5\)|mMaj7|m7|m6|m|7M|7|6|9|11|13|dim|aug|sus2|sus4|add9|°|\+)?$/i.exec(norm);
+        if (!m) return null;
+        let root = m[1].toUpperCase();
+        let qual = (m[2]||'').toLowerCase();
+        if (qual==='°' || qual==='dim') qual='dim';
+        if (qual==='+') qual='aug';
+        return {root, quality:qual};
+      }
+
+      function nameToIndex(n){
+        const map = { 'C':8,'C#':9,'DB':9,'D':10,'D#':11,'EB':11,'E':0,'F':1,'F#':2,'GB':2,'G':3,'G#':4,'AB':4,'A':5,'A#':6,'BB':6,'B':7 };
+        return map[n.toUpperCase()] ?? 0;
+      }
+
+      function applyChordName(parsed){
+        // Estratégia simples: preencher forma aberta comum quando existir
+        const shapes = {
+          'C': [-1,3,2,0,1,0],
+          'Cm': [-1,3,1,0,1,3],
+          'D': [-1,-1,0,2,3,2],
+          'Dm': [-1,-1,0,2,3,1],
+          'E': [0,2,2,1,0,0],
+          'Em': [0,2,2,0,0,0],
+          'F': [1,3,3,2,1,1],
+          'G': [3,2,0,0,0,3],
+          'A': [-1,0,2,2,2,0],
+          'Am': [-1,0,2,2,1,0],
+          'B7': [-1,2,1,2,0,2],
+          'G7': [3,2,0,0,0,1],
+          'C7M': [-1,3,2,0,0,0], // Cmaj7
+        };
+        let key = parsed.root + (parsed.quality==='m'?'m': parsed.quality==='7m'?'7m': parsed.quality==='7m(b5)'?'7m(b5)': (parsed.quality==='7m5b'?'m7(b5)': (parsed.quality==='7m(b5)'?'m7(b5)': '')));
+        // Normalizar algumas
+        if (parsed.quality==='7m(b5)'||parsed.quality==='m7(b5)') key = parsed.root+'m7(b5)';
+        if (parsed.quality==='7m'||parsed.quality==='m7') key = parsed.root+'m';
+        if (parsed.quality==='7mMaj7'||parsed.quality==='mMaj7') key = parsed.root+'m';
+        if (parsed.quality==='' ) key = parsed.root;
+        if (parsed.quality==='7') key = parsed.root+'7';
+        if (parsed.quality==='7m' ) key = parsed.root+'m7';
+        if (parsed.quality==='7m5b') key = parsed.root+'m7(b5)';
+        if (parsed.quality==='7m(b5)') key = parsed.root+'m7(b5)';
+        if (parsed.quality==='7m11') key = parsed.root; // fallback
+
+        // se existir preset direto
+        if (shapes[key]) {
+          fingering = shapes[key];
+          drawChord(); updateChordUI();
+          return;
+        }
+
+        // fallback: marcar tônica no 3º traste da 6ª corda aproximado
+        fingering = [3,-1,-1,-1,-1,-1];
+        drawChord(); updateChordUI();
+      }
+
+      // Download PNG com título centralizado
+      document.getElementById('download-chord-png').addEventListener('click', ()=>{
+        const title = document.getElementById('chord-result').textContent || 'Acorde';
+        const P = 20, TITLE_H = 40;
+        const w = STR_W*(NUM_STRINGS-1)+P*2;
+        const h = FRET_H*5 + P*2 + TITLE_H;
+        const cnv = document.createElement('canvas');
+        cnv.width = w; cnv.height = h;
+        const ctx = cnv.getContext('2d');
+        ctx.fillStyle='#fff'; ctx.fillRect(0,0,w,h);
+
+        // título
+        ctx.fillStyle='#111'; ctx.font='bold 20px sans-serif'; ctx.textAlign='center';
+        ctx.fillText(title, w/2, P + 18);
+
+        // diagrama (tipo cifra club: deixa 1 casa vazia quando início > 1)
+        const startFret = Math.max(1, ...fingering.filter(f=>f>0));
+        const maxFret = Math.max(...fingering.filter(f=>f>0), 1);
+        let first = 1;
+        if (startFret>1 && (maxFret-startFret)>=4) first = startFret-1;
+
+        const baseY = P + TITLE_H;
+        const Fh = 42, Sw = 30;
+
+        // cordas
+        for (let i=0;i<NUM_STRINGS;i++){
+          const x = P + i*Sw;
+          ctx.beginPath(); ctx.moveTo(x, baseY); ctx.lineTo(x, baseY + Fh*5);
+          ctx.strokeStyle='#333'; ctx.lineWidth=1.5; ctx.stroke();
+        }
+        // trastes
+        for (let i=0;i<=5;i++){
+          ctx.beginPath(); ctx.moveTo(P, baseY + i*Fh); ctx.lineTo(P + Sw*(NUM_STRINGS-1), baseY + i*Fh);
+          ctx.strokeStyle='#111'; ctx.lineWidth=(i===0 && first===1)?3:1; ctx.stroke();
+        }
+        if (first>1){
+          ctx.fillStyle='#111'; ctx.font='14px sans-serif'; ctx.textAlign='left';
+          ctx.fillText((first+1)+'ª', P-8, baseY + Fh - 6);
+        }
+
+        // dedos/X/O
+        for (let s=0;s<NUM_STRINGS;s++){
+          const f = fingering[s];
+          const x = P + (NUM_STRINGS-1 - s)*Sw; // espelhado para PNG
+          const y = (f<=0) ? (baseY-10) : (baseY + (f-first)*Fh - Fh/2);
+          if (f === -1){
+            ctx.fillStyle='#000'; ctx.font='16px sans-serif'; ctx.fillText('x', x-4, y+4);
+          } else if (f === 0){
+            ctx.beginPath(); ctx.arc(x, baseY-10, 7, 0, Math.PI*2);
+            ctx.strokeStyle='#000'; ctx.lineWidth=1.5; ctx.stroke();
+          } else {
+            ctx.beginPath(); ctx.arc(x, y, 9, 0, Math.PI*2);
+            ctx.fillStyle='#000'; ctx.fill();
+          }
+        }
+
+        const a = document.createElement('a');
+        a.download = (title || 'acorde').replace(/\s+/g,'_') + '.png';
+        a.href = cnv.toDataURL();
+        a.click();
+      });
+
+      document.getElementById('clear-chord').addEventListener('click', ()=>{
+        fingering = [-1,-1,-1,-1,-1,-1];
+        drawChord(); updateChordUI();
+      });
+
+      // Presets comuns para o usuário
+      const PRESETS = {
+        'C': [-1,3,2,0,1,0],
+        'D': [-1,-1,0,2,3,2],
+        'E': [0,2,2,1,0,0],
+        'F (barra)': [1,3,3,2,1,1],
+        'G': [3,2,0,0,0,3],
+        'A': [-1,0,2,2,2,0],
+        'Am': [-1,0,2,2,1,0],
+        'Em': [0,2,2,0,0,0],
+        'Dm': [-1,-1,0,2,3,1],
+        'C7M': [-1,3,2,0,0,0],
+        'G7': [3,2,0,0,0,1],
+        'B7': [-1,2,1,2,0,2]
+      };
+      const presetsDiv = document.getElementById('preset-buttons');
+      Object.keys(PRESETS).forEach(k=>{
+        const b = document.createElement('button');
+        b.textContent = k;
+        b.className = 'px-2 py-1 rounded border hover:bg-gray-100 dark:hover:bg-gray-700';
+        b.addEventListener('click', ()=>{
+          fingering = PRESETS[k].slice();
+          drawChord(); updateChordUI();
+        });
+        presetsDiv.appendChild(b);
+      });
+
+      resizeChordCanvas(); drawChord(); updateChordUI();
+
+      // ============ NOTAS ============
+      const noteCanvas = document.getElementById('note-fretboard-canvas');
+      const nctx = noteCanvas.getContext('2d', { alpha:false });
+      const toggleAll = document.getElementById('toggle-all-notes');
+      const resizeBtn = document.getElementById('resize-fretboard');
+      let showAll = false;
+
+      let NFRET = 12;
+      function sizeNoteCanvas(){
+        const maxW = Math.min(1100, noteCanvas.parentElement.clientWidth - 2);
+        const SW = Math.max(60, Math.floor(maxW / (NFRET+2)));
+        const FH = Math.round(SW * 0.7);
+        noteCanvas.width = SW * (NFRET + 1.8);
+        noteCanvas.height = FH * (NUM_STRINGS + 1.2);
+        return {SW, FH};
+      }
+
+      function drawNotes(){
+        const {SW, FH} = sizeNoteCanvas();
+        const W = noteCanvas.width, H = noteCanvas.height;
+        nctx.fillStyle = '#f4e4c1'; nctx.fillRect(0,0,W,H);
+        // cordas horizontais
+        for (let s=0;s<NUM_STRINGS;s++){
+          const y = FH*(s+1);
+          nctx.beginPath(); nctx.moveTo(SW/2, y); nctx.lineTo(W - SW/2, y);
+          nctx.strokeStyle = '#5b513f'; nctx.lineWidth = 1 + s*0.3; nctx.stroke();
+        }
+        // trastes verticais
+        for (let f=0; f<=NFRET; f++){
+          const x = SW*(f+1);
+          nctx.beginPath(); nctx.moveTo(x, FH/2); nctx.lineTo(x, H - FH/2);
+          nctx.strokeStyle = '#9b8a6a'; nctx.lineWidth = (f===0?6:2); nctx.stroke();
+        }
+        // marcações
+        [3,5,7,9,12].forEach(f=>{
+          const x = SW*(f+0.5), y = (f===12) ? H/2 - FH/2 : H/2;
+          nctx.beginPath(); nctx.arc(x, y, 6, 0, Math.PI*2);
+          nctx.fillStyle = '#8b6e3a'; nctx.fill();
+          if (f===12){
+            nctx.beginPath(); nctx.arc(x, y + FH, 6, 0, Math.PI*2);
+            nctx.fill();
+          }
+        });
+        // notas
+        if (showAll){
+          nctx.font='13px sans-serif'; nctx.textAlign='center'; nctx.fillStyle='#111';
+          for (let s=0;s<NUM_STRINGS;s++){
+            for (let f=0; f<=NFRET; f++){
+              const note = getNoteOnFret(s,f);
+              const x = SW*(f+0.5);
+              const y = FH*(s+1) + 5;
+              nctx.fillText(`${note} (${PT_NAMES[note]})`, x, y);
+            }
+          }
+        }
+      }
+      noteCanvas.addEventListener('click', (e)=>{
+        if (showAll) return;
+        const {SW, FH} = sizeNoteCanvas();
+        const r = noteCanvas.getBoundingClientRect();
+        const x = e.clientX - r.left, y = e.clientY - r.top;
+        const string = Math.floor(y / FH) - 1;
+        const fret = Math.floor(x / SW) - 1;
+        if (string>=0 && string<NUM_STRINGS && fret>=0 && fret<=NFRET){
+          drawNotes();
+          const cx = SW*(fret+0.5), cy = FH*(string+1);
+          nctx.beginPath(); nctx.arc(cx, cy, 15, 0, Math.PI*2);
+          nctx.fillStyle = 'rgba(79,70,229,.9)'; nctx.fill();
+          nctx.font='bold 12px sans-serif'; nctx.textAlign='center'; nctx.fillStyle='#fff';
+          nctx.fillText(getNoteOnFret(string,fret), cx, cy+4);
+        }
+      });
+      toggleAll.addEventListener('click', ()=>{
+        showAll = !showAll;
+        toggleAll.textContent = showAll ? 'Ocultar Todas' : 'Mostrar Todas';
+        drawNotes();
+      });
+      resizeBtn.addEventListener('click', drawNotes);
+      drawNotes();
+
+      // Quiz de notas
+      const quizBtn = document.getElementById('start-quiz');
+      const quizWrap = document.getElementById('quiz-canvas-wrap');
+      const quizCanvas = document.getElementById('quiz-canvas');
+      const qctx = quizCanvas.getContext('2d');
+      const quizOptions = document.getElementById('quiz-options');
+      const quizFeedback = document.getElementById('quiz-feedback');
+
+      function sizeQuiz(){
+        const w = Math.min(600, quizCanvas.parentElement.clientWidth - 2);
+        quizCanvas.width = w;
+        quizCanvas.height = Math.round(w * 0.35);
+      }
+      function drawQuiz(string, fret){
+        sizeQuiz();
+        const W = quizCanvas.width, H = quizCanvas.height;
+        qctx.fillStyle='#fff'; qctx.fillRect(0,0,W,H);
+        // simples mini-diagrama horizontal (cordas = linhas)
+        const rows = 6, cols = 6;
+        for (let r=0;r<rows;r++){
+          const y = (H/(rows+1))*(r+1);
+          qctx.beginPath(); qctx.moveTo(20,y); qctx.lineTo(W-20,y);
+          qctx.strokeStyle='#bbb'; qctx.stroke();
+        }
+        for (let c=0;c<cols;c++){
+          const x = 20 + (W-40)*(c/cols);
+          qctx.beginPath(); qctx.moveTo(x, 20); qctx.lineTo(x, H-20);
+          qctx.strokeStyle='#ddd'; qctx.stroke();
+        }
+        // marca o ponto alvo
+        const y = (H/(rows+1))*(string+1);
+        const x = 20 + (W-40)*((fret+0.5)/6);
+        qctx.beginPath(); qctx.arc(x,y,10,0,Math.PI*2); qctx.fillStyle='#111'; qctx.fill();
+      }
+
+      function startQuiz(){
+        quizWrap.classList.remove('hidden');
+        quizOptions.classList.remove('hidden');
+        quizFeedback.textContent='';
+        // sorteia uma nota real do braço até a 5ª casa
+        const s = Math.floor(Math.random()*6);
+        const f = Math.floor(Math.random()*6);
+        const correct = getNoteOnFret(s,f);
+        drawQuiz(s,f);
+        // monta 3 falsas + 1 correta
+        const set = new Set([correct]);
+        while (set.size<4){
+          const r = NOTE_NAMES[Math.floor(Math.random()*12)];
+          set.add(r);
+        }
+        const opts = Array.from(set);
+        for (let i=opts.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [opts[i],opts[j]]=[opts[j],opts[i]]; }
+        quizOptions.innerHTML='';
+        opts.forEach(n=>{
+          const b = document.createElement('button');
+          b.textContent = n;
+          b.className = 'px-2 py-2 rounded border hover:bg-gray-100 dark:hover:bg-gray-700';
+          b.addEventListener('click', ()=>{
+            if (n===correct){
+              quizFeedback.textContent = '✅ Correto!';
+              quizFeedback.className = 'text-sm text-green-600 h-6';
+            } else {
+              quizFeedback.textContent = `❌ Era ${correct}.`;
+              quizFeedback.className = 'text-sm text-red-600 h-6';
+            }
+            setTimeout(startQuiz, 900);
+          });
+          quizOptions.appendChild(b);
+        });
+      }
+      quizBtn.addEventListener('click', startQuiz);
+
+      // ============ METRÔNOMO ============
+      const bpmDisp = document.getElementById('metro-bpm-display');
+      const slider = document.getElementById('metro-slider');
+      const signatureSel = document.getElementById('metro-signature');
+      const soundSel = document.getElementById('metro-sound');
+      const startStop = document.getElementById('metro-start-stop');
+      let isRunning = false;
+      let loop = null, beat = 0;
+
+      const sounds = {
+        classic: new Tone.Synth({ oscillator:{type:'sine'}, envelope:{attack:0.001,decay:0.1,sustain:0,release:0.1} }).toDestination(),
+        drop: new Tone.MembraneSynth({ pitchDecay: 0.01, octaves: 6, oscillator:{type:'sine'}, envelope:{attack:0.001,decay:0.2,sustain:0.01,release:0.2} }).toDestination()
+      };
+      function updateMet(){ Tone.Transport.bpm.value = slider.value; bpmDisp.textContent = slider.value; }
+      function startMet(){
+        if (Tone.context.state !== 'running') Tone.start();
+        beat = 0;
+        const sig = parseInt(signatureSel.value, 10);
+        loop = new Tone.Loop(t=>{
+          const s = sounds[soundSel.value];
+          let note = 'C5';
+          if (sig>1 && beat % sig === 0) note = 'G5';
+          s.triggerAttackRelease(note, '8n', t);
+          beat++;
+        }, '4n').start(0);
+        Tone.Transport.start();
+        isRunning = true;
+        startStop.textContent='Parar';
+        startStop.classList.remove('bg-green-600','hover:bg-green-700');
+        startStop.classList.add('bg-red-600','hover:bg-red-700');
+      }
+      function stopMet(){
+        Tone.Transport.stop();
+        if (loop) loop.dispose();
+        isRunning = false;
+        startStop.textContent='Iniciar';
+        startStop.classList.remove('bg-red-600','hover:bg-red-700');
+        startStop.classList.add('bg-green-600','hover:bg-green-700');
+      }
+      slider.addEventListener('input', updateMet);
+      startStop.addEventListener('click', ()=> isRunning ? stopMet() : startMet());
+      updateMet();
+
+      // ============ TABLATURA ============
+      const tabTA = document.getElementById('tab-textarea');
+      const formatBtn = document.getElementById('format-tab');
+      const dlTxt = document.getElementById('download-tab-txt');
+      const dlPng = document.getElementById('download-tab-png');
+      const clearBtn = document.getElementById('clear-tab');
+
+      function buildLines(measures=12, dashes=15){
+        const bar = '-'.repeat(dashes) + '|';
+        const body = bar.repeat(measures);
+        const tuning = ['e','B','G','D','A','E']; // linha de cima = 1ª corda
+        return tuning.map(t=> `${t}|${body}`).join('\n');
+      }
+      tabTA.value = buildLines(12,15);
+
+      formatBtn.addEventListener('click', ()=>{
+        const lines = tabTA.value.split('\n').filter(Boolean);
+        const formatted = lines.map(line=>{
+          const m = /^([eBGDAE])\|(.*)$/.exec(line.trim());
+          if (!m) return line;
+          const t = m[1]; const rest = m[2].replace(/[^-|\d()hpsx\\/]/g,'');
+          // insere barras a cada 15 '-'
+          let out = ''; let count=0;
+          for (const ch of rest){
+            out += ch;
+            if (ch==='-'){ count++; if (count===15){ out += '|'; count=0; } }
+          }
+          return `${t}|${out}`;
+        }).join('\n');
+        // repete afinação ao quebrar em múltiplas linhas (mantém forma)
+        tabTA.value = formatted;
+      });
+
+      clearBtn.addEventListener('click', ()=>{
+        tabTA.value = buildLines(12,15);
+      });
+
+      dlTxt.addEventListener('click', ()=>{
+        const blob = new Blob([tabTA.value], {type:'text/plain'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'minha_tablatura.txt'; a.click();
+        URL.revokeObjectURL(url);
+      });
+      dlPng.addEventListener('click', ()=>{
+        const lines = tabTA.value.split('\n');
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const FONT = 16, LH = 20, PAD = 20;
+        ctx.font = `${FONT}px monospace`;
+        const textWidth = Math.max(...lines.map(l=> ctx.measureText(l).width));
+        canvas.width = textWidth + PAD*2;
+        canvas.height = lines.length*LH + PAD*2;
+        ctx.fillStyle='#fff'; ctx.fillRect(0,0,canvas.width,canvas.height);
+        ctx.fillStyle='#111'; ctx.textBaseline='top'; ctx.font = `${FONT}px monospace`;
+        lines.forEach((l,i)=> ctx.fillText(l, PAD, PAD + i*LH));
+        const a = document.createElement('a');
+        a.download = 'minha_tablatura.png'; a.href = canvas.toDataURL(); a.click();
+      });
+
+    }); // DOMContentLoaded
+
+    // ============ SERVICE WORKER ============
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(console.warn);
+      });
+    }
+  </script>
 </body>
 </html>
-
